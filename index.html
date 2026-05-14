@@ -1,297 +1,310 @@
-export default function DashboardNeuquenFinal() {
-  const regiones = [
-    {
-      nombre: 'Región de los Lagos del Sur',
-      color: '#f59ac2',
-      establecimientos: 482,
-      habitaciones: 4001,
-      plazas: 13130,
-      actividades: 'Pesca, montaña, nieve y turismo lacustre',
-      localidades: 'San Martín de los Andes, Villa La Angostura, Junín de los Andes, Villa Traful',
-    },
-    {
-      nombre: 'Región del Pehuén',
-      color: '#d9f99d',
-      establecimientos: 267,
-      habitaciones: 1340,
-      plazas: 4774,
-      actividades: 'Naturaleza, nieve y gastronomía',
-      localidades: 'Zapala, Aluminé, Las Lajas, Villa Pehuenia',
-    },
-    {
-      nombre: 'Región Alto Neuquén',
-      color: '#e8c9a0',
-      establecimientos: 101,
-      habitaciones: 608,
-      plazas: 1503,
-      actividades: 'Ecoturismo, pesca y termalismo',
-      localidades: 'Chos Malal, Andacollo, Caviahue-Copahue, Las Ovejas',
-    },
-    {
-      nombre: 'Región Confluencia',
-      color: '#bfd3ff',
-      establecimientos: 104,
-      habitaciones: 2099,
-      plazas: 5127,
-      actividades: 'Turismo urbano y corporativo',
-      localidades: 'Neuquén, Plottier, Centenario, Senillosa',
-    },
-    {
-      nombre: 'Región Vaca Muerta',
-      color: '#d4b5ff',
-      establecimientos: 19,
-      habitaciones: 590,
-      plazas: 1288,
-      actividades: 'Servicios petroleros y corporativos',
-      localidades: 'Añelo, Rincón de los Sauces, San Patricio del Chañar',
-    },
-    {
-      nombre: 'Región del Limay',
-      color: '#9fd4c2',
-      establecimientos: 37,
-      habitaciones: 107,
-      plazas: 376,
-      actividades: 'Pesca y turismo de paso',
-      localidades: 'Picún Leufú, Piedra del Águila',
-    },
-    {
-      nombre: 'Región de la Comarca',
-      color: '#f7b27a',
-      establecimientos: 10,
-      habitaciones: 134,
-      plazas: 295,
-      actividades: 'Turismo de servicios y paso',
-      localidades: 'Cutral Co, Plaza Huincul',
-    },
-  ];
+from pathlib import Path
+import base64, textwrap, os, subprocess, sys
 
-  const actividades = [
-    ['Pesca deportiva', 192],
-    ['Montañismo', 49],
-    ['Guías de sitio', 12],
-    ['Rafting', 12],
-    ['4x4', 11],
-    ['Kayak', 8],
-    ['Senderismo', 8],
-    ['Mountain bike', 7],
-    ['Cabalgatas', 6],
-  ];
+pdf_path = Path("/mnt/data/Nuevo mapa de regiones A3_260514_084935.pdf")
+out_dir = Path("/mnt/data/neuquen_dashboard_final")
+out_dir.mkdir(exist_ok=True)
 
-  const maxEst = 482;
+# Render PDF page to PNG using PyMuPDF if available
+png_path = out_dir / "mapa_regionalizacion_neuquen.png"
+try:
+    import fitz
+    doc = fitz.open(str(pdf_path))
+    page = doc[0]
+    pix = page.get_pixmap(matrix=fitz.Matrix(2, 2), alpha=False)
+    pix.save(str(png_path))
+except Exception as e:
+    # fallback using pdftoppm if available
+    subprocess.run(["pdftoppm", "-png", "-r", "180", "-singlefile", str(pdf_path), str(out_dir / "mapa_regionalizacion_neuquen")], check=True)
+    png_path = out_dir / "mapa_regionalizacion_neuquen.png"
 
-  return (
-    <div className="min-h-screen bg-slate-100 p-6 text-slate-800">
-      <div className="mx-auto max-w-7xl space-y-6">
+img_b64 = base64.b64encode(png_path.read_bytes()).decode("ascii")
 
-        <div className="rounded-3xl bg-gradient-to-r from-slate-800 to-slate-700 p-8 text-white shadow-2xl">
-          <p className="uppercase tracking-[0.3em] text-slate-300 text-sm">
-            Observatorio Turístico · Provincia del Neuquén
-          </p>
-          <h1 className="mt-3 text-5xl font-bold leading-tight">
-            Dashboard Regionalizado del Turismo
-          </h1>
-          <p className="mt-4 max-w-3xl text-slate-200 leading-7">
-            Distribución territorial de alojamientos turísticos y prestadores de actividades según la nueva regionalización provincial.
-          </p>
+html = f"""<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard Turístico Regionalizado - Neuquén</title>
+  <style>
+    :root {{
+      --bg:#f3f7f6;
+      --ink:#073746;
+      --muted:#667085;
+      --card:#ffffff;
+      --line:#d8e3e1;
+      --green:#62bf6a;
+      --shadow:0 14px 34px rgba(7,55,70,.12);
+    }}
+    * {{ box-sizing:border-box; }}
+    body {{
+      margin:0;
+      font-family: Arial, Helvetica, sans-serif;
+      background:var(--bg);
+      color:var(--ink);
+    }}
+    .wrap {{ max-width:1440px; margin:0 auto; padding:24px; }}
+    .hero {{
+      background:linear-gradient(135deg,#073746 0%,#0d5d66 72%,#5dbb63 100%);
+      color:white;
+      border-radius:28px;
+      padding:34px;
+      box-shadow:var(--shadow);
+      display:grid;
+      grid-template-columns:1.4fr .6fr;
+      gap:22px;
+      align-items:end;
+    }}
+    .eyebrow {{ letter-spacing:.24em; text-transform:uppercase; color:#dff3e6; font-size:13px; font-weight:700; }}
+    h1 {{ font-size:clamp(34px,5vw,62px); margin:12px 0 10px; line-height:1; }}
+    .hero p {{ margin:0; max-width:880px; line-height:1.65; color:#ecfff2; font-size:17px; }}
+    .source {{ font-size:13px; color:#e6fff0; text-align:right; line-height:1.5; }}
+    .kpis {{ display:grid; grid-template-columns:repeat(4,1fr); gap:16px; margin:22px 0; }}
+    .kpi {{ background:var(--card); border:1px solid var(--line); border-radius:24px; padding:22px; box-shadow:0 8px 22px rgba(7,55,70,.08); }}
+    .kpi span {{ display:block; color:var(--muted); font-size:14px; margin-bottom:8px; }}
+    .kpi strong {{ font-size:44px; line-height:1; }}
+    .grid {{ display:grid; grid-template-columns:1.05fr .95fr; gap:22px; align-items:start; }}
+    .card {{ background:var(--card); border:1px solid var(--line); border-radius:28px; padding:22px; box-shadow:var(--shadow); margin-bottom:22px; }}
+    h2 {{ margin:0 0 6px; font-size:30px; }}
+    .sub {{ color:var(--muted); margin:0 0 18px; line-height:1.5; }}
+    .map-shell {{ position:relative; border:1px solid var(--line); border-radius:22px; overflow:hidden; background:#fff; }}
+    .map-img {{ display:block; width:100%; height:auto; }}
+    .hotspot {{
+      position:absolute; border:2px solid transparent; border-radius:18px; cursor:pointer;
+      transition:.15s ease; background:rgba(255,255,255,0);
+    }}
+    .hotspot:hover, .hotspot.active {{ border-color:#073746; background:rgba(255,255,255,.18); box-shadow:0 0 0 5px rgba(98,191,106,.25); }}
+    .tip {{
+      position:absolute; pointer-events:none; transform:translate(-50%,-110%);
+      background:#073746; color:#fff; padding:8px 10px; border-radius:12px;
+      font-size:12px; white-space:nowrap; opacity:0; transition:.12s ease;
+    }}
+    .tip.show {{ opacity:1; }}
+    .region-list {{ display:grid; gap:12px; }}
+    .region-card {{
+      border:1px solid var(--line); background:#fbfefd; border-radius:20px; padding:16px; cursor:pointer;
+      transition:.15s ease;
+    }}
+    .region-card:hover, .region-card.active {{ transform:translateY(-1px); box-shadow:0 8px 20px rgba(7,55,70,.10); border-color:#7ccf83; }}
+    .region-head {{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }}
+    .dot {{ width:18px; height:18px; border-radius:50%; border:1px solid rgba(0,0,0,.18); flex:none; }}
+    .region-head h3 {{ margin:0; font-size:19px; }}
+    .nums {{ display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:12px; }}
+    .num {{ background:#fff; border:1px solid var(--line); border-radius:14px; padding:9px; text-align:center; }}
+    .num span {{ display:block; color:var(--muted); font-size:11px; margin-bottom:4px; }}
+    .num b {{ font-size:19px; }}
+    .bar {{ height:12px; border-radius:999px; background:#e7efed; overflow:hidden; margin:10px 0; }}
+    .fill {{ height:100%; border-radius:999px; }}
+    .small {{ font-size:13px; line-height:1.45; color:#52646b; margin:6px 0 0; }}
+    .panel {{
+      border:2px solid #6cc56e; background:#f7fff8; border-radius:24px; padding:18px; margin-bottom:18px;
+    }}
+    .panel h3 {{ margin:0 0 8px; font-size:24px; }}
+    .panel-grid {{ display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin:14px 0; }}
+    .panel-box {{ background:white; border:1px solid var(--line); border-radius:16px; padding:12px; text-align:center; }}
+    .panel-box span {{ display:block; color:var(--muted); font-size:12px; margin-bottom:5px; }}
+    .panel-box b {{ font-size:24px; }}
+    .activities {{ display:grid; gap:13px; }}
+    .act-top {{ display:flex; justify-content:space-between; gap:12px; font-size:14px; margin-bottom:5px; }}
+    .actbar {{ height:17px; background:#e7efed; border-radius:999px; overflow:hidden; }}
+    .actfill {{ height:100%; background:#31583a; border-radius:999px; }}
+    .notes {{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }}
+    .note {{ border:1px solid var(--line); border-radius:18px; padding:16px; background:#fbfefd; line-height:1.55; color:#3e555d; }}
+    .note h3 {{ margin:0 0 8px; color:var(--ink); }}
+    footer {{ color:var(--muted); text-align:center; padding:16px 0 6px; font-size:13px; }}
+    @media(max-width:1100px) {{ .hero,.grid {{ grid-template-columns:1fr; }} .source {{ text-align:left; }} .kpis {{ grid-template-columns:repeat(2,1fr); }} }}
+    @media(max-width:680px) {{ .wrap {{ padding:14px; }} .kpis,.nums,.panel-grid,.notes {{ grid-template-columns:1fr; }} .kpi strong {{ font-size:34px; }} }}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="hero">
+      <div>
+        <div class="eyebrow">Observatorio Turístico · Neuquén</div>
+        <h1>Dashboard Regionalizado del Turismo</h1>
+        <p>Distribución territorial de alojamientos, habitaciones, plazas/camas y prestadores de actividades según el nuevo Plan Provincial de Regionalización.</p>
+      </div>
+      <div class="source">Mapa base: Plan Provincial de Regionalización<br/>Provincia del Neuquén</div>
+    </header>
+
+    <section class="kpis">
+      <div class="kpi"><span>Establecimientos</span><strong>1.020</strong></div>
+      <div class="kpi"><span>Habitaciones</span><strong>8.931</strong></div>
+      <div class="kpi"><span>Plazas / camas</span><strong>26.851</strong></div>
+      <div class="kpi"><span>Prestadores actividades</span><strong>325</strong></div>
+    </section>
+
+    <main class="grid">
+      <section class="card">
+        <h2>Mapa regional interactivo</h2>
+        <p class="sub">Hacé click sobre una región del mapa o sobre las tarjetas para ver el detalle territorial.</p>
+        <div class="map-shell" id="mapShell">
+          <img class="map-img" src="data:image/png;base64,{img_b64}" alt="Mapa de regionalización de Neuquén"/>
+          <button class="hotspot" data-region="alto" style="left:34%;top:21%;width:19%;height:25%;" title="Región Alto Neuquén"></button>
+          <button class="hotspot" data-region="vaca" style="left:56%;top:24%;width:20%;height:22%;" title="Región Vaca Muerta"></button>
+          <button class="hotspot" data-region="pehuen" style="left:31%;top:47%;width:27%;height:20%;" title="Región del Pehuén"></button>
+          <button class="hotspot" data-region="comarca" style="left:60%;top:49%;width:10%;height:9%;" title="Región de la Comarca"></button>
+          <button class="hotspot" data-region="confluencia" style="left:70%;top:49%;width:12%;height:9%;" title="Región Confluencia"></button>
+          <button class="hotspot" data-region="limay" style="left:49%;top:61%;width:22%;height:18%;" title="Región del Limay"></button>
+          <button class="hotspot" data-region="lagos" style="left:24%;top:63%;width:23%;height:22%;" title="Región de los Lagos del Sur"></button>
+          <div class="tip" id="tip"></div>
         </div>
+      </section>
 
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-          <div className="rounded-3xl bg-white p-6 shadow-lg border border-slate-200">
-            <p className="text-sm text-slate-500">Establecimientos</p>
-            <h2 className="mt-2 text-5xl font-bold">1.020</h2>
-          </div>
+      <aside class="card">
+        <h2>Detalle regional</h2>
+        <p class="sub">Región seleccionada</p>
+        <div class="panel" id="detail"></div>
+        <div class="region-list" id="regionList"></div>
+      </aside>
+    </main>
 
-          <div className="rounded-3xl bg-white p-6 shadow-lg border border-slate-200">
-            <p className="text-sm text-slate-500">Habitaciones</p>
-            <h2 className="mt-2 text-5xl font-bold">8.931</h2>
-          </div>
+    <section class="grid">
+      <div class="card">
+        <h2>Prestadores por actividad</h2>
+        <p class="sub">Distribución provincial de 325 prestadores habilitados.</p>
+        <div class="activities" id="activities"></div>
+      </div>
 
-          <div className="rounded-3xl bg-white p-6 shadow-lg border border-slate-200">
-            <p className="text-sm text-slate-500">Plazas / Camas</p>
-            <h2 className="mt-2 text-5xl font-bold">26.851</h2>
-          </div>
-
-          <div className="rounded-3xl bg-white p-6 shadow-lg border border-slate-200">
-            <p className="text-sm text-slate-500">Prestadores de actividades</p>
-            <h2 className="mt-2 text-5xl font-bold">325</h2>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-
-          <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-200">
-            <div className="mb-6 flex items-center justify-between">
-              <div>
-                <h2 className="text-3xl font-bold">Mapa regional interactivo</h2>
-                <p className="text-slate-500 mt-1">Distribución territorial del turismo</p>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-center rounded-2xl border bg-slate-50 p-4 overflow-auto">
-              <svg viewBox="0 0 520 900" className="max-h-[760px] w-full">
-
-                <path d="M150 20 L300 30 L350 220 L420 390 L390 620 L320 860 L180 840 L100 700 L50 520 L40 360 L70 180 Z" fill="#f8fafc" stroke="#334155" strokeWidth="5" />
-
-                <g>
-                  <path d="M150 20 L300 30 L340 220 L250 320 L160 300 L70 180 Z" fill="#e8c9a0" stroke="#334155" strokeWidth="2" />
-                  <text x="210" y="160" textAnchor="middle" fontSize="22" fontWeight="700">Alto Neuquén</text>
-                  <text x="210" y="190" textAnchor="middle" fontSize="13">101 establecimientos</text>
-                </g>
-
-                <g>
-                  <path d="M340 100 L450 120 L460 350 L420 390 L340 220 Z" fill="#d4b5ff" stroke="#334155" strokeWidth="2" />
-                  <text x="405" y="220" textAnchor="middle" fontSize="22" fontWeight="700">Vaca Muerta</text>
-                  <text x="405" y="250" textAnchor="middle" fontSize="13">19 establecimientos</text>
-                </g>
-
-                <g>
-                  <path d="M160 300 L250 320 L360 500 L250 590 L140 560 L60 450 L40 360 Z" fill="#d9f99d" stroke="#334155" strokeWidth="2" />
-                  <text x="200" y="450" textAnchor="middle" fontSize="24" fontWeight="700">Pehuén</text>
-                  <text x="200" y="480" textAnchor="middle" fontSize="13">267 establecimientos</text>
-                </g>
-
-                <g>
-                  <path d="M360 430 L430 500 L400 600 L320 580 L360 500 Z" fill="#f7b27a" stroke="#334155" strokeWidth="2" />
-                  <text x="380" y="535" textAnchor="middle" fontSize="16" fontWeight="700">Comarca</text>
-                  <text x="380" y="555" textAnchor="middle" fontSize="12">10 establecimientos</text>
-                </g>
-
-                <g>
-                  <path d="M320 580 L400 600 L390 690 L320 720 L250 590 Z" fill="#bfd3ff" stroke="#334155" strokeWidth="2" />
-                  <text x="345" y="655" textAnchor="middle" fontSize="20" fontWeight="700">Confluencia</text>
-                  <text x="345" y="680" textAnchor="middle" fontSize="12">104 establecimientos</text>
-                </g>
-
-                <g>
-                  <path d="M250 590 L320 720 L300 860 L190 820 L120 680 Z" fill="#9fd4c2" stroke="#334155" strokeWidth="2" />
-                  <text x="235" y="735" textAnchor="middle" fontSize="20" fontWeight="700">Región del</text>
-                  <text x="235" y="760" textAnchor="middle" fontSize="20" fontWeight="700">Limay</text>
-                  <text x="235" y="760" textAnchor="middle" fontSize="12">37 establecimientos</text>
-                </g>
-
-                <g>
-                  <path d="M60 450 L140 560 L250 590 L120 830 L40 760 L20 600 Z" fill="#f59ac2" stroke="#334155" strokeWidth="2" />
-                  <text x="125" y="690" textAnchor="middle" fontSize="26" fontWeight="700">Lagos del Sur</text>
-                  <text x="125" y="720" textAnchor="middle" fontSize="13">482 establecimientos</text>
-                </g>
-
-              </svg>
-            </div>
-          </div>
-
-          <div className="space-y-6">
-
-            <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-200">
-              <h2 className="text-3xl font-bold mb-5">Oferta turística por región</h2>
-
-              <div className="space-y-5">
-                {regiones.map((r) => (
-                  <div key={r.nombre} className="rounded-2xl border border-slate-200 p-4 hover:shadow-lg transition-all bg-slate-50">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="h-5 w-5 rounded-full" style={{ backgroundColor: r.color }} />
-                      <h3 className="font-bold text-lg">{r.nombre}</h3>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-3 text-center mb-4">
-                      <div className="rounded-xl bg-white p-3 border">
-                        <p className="text-xs text-slate-500">Est.</p>
-                        <p className="text-2xl font-bold">{r.establecimientos}</p>
-                      </div>
-
-                      <div className="rounded-xl bg-white p-3 border">
-                        <p className="text-xs text-slate-500">Hab.</p>
-                        <p className="text-2xl font-bold">{r.habitaciones}</p>
-                      </div>
-
-                      <div className="rounded-xl bg-white p-3 border">
-                        <p className="text-xs text-slate-500">Plazas</p>
-                        <p className="text-2xl font-bold">{r.plazas}</p>
-                      </div>
-                    </div>
-
-                    <div className="mb-3">
-                      <div className="mb-1 flex justify-between text-sm">
-                        <span className="font-medium">Participación relativa</span>
-                        <span>{Math.round((r.establecimientos / 1020) * 100)}%</span>
-                      </div>
-
-                      <div className="h-4 rounded-full bg-slate-200 overflow-hidden">
-                        <div className="h-4 rounded-full" style={{ width: `${(r.establecimientos / maxEst) * 100}%`, backgroundColor: r.color }} />
-                      </div>
-                    </div>
-
-                    <p className="text-sm text-slate-600 leading-6">
-                      <span className="font-semibold">Localidades:</span> {r.localidades}
-                    </p>
-
-                    <p className="text-sm text-slate-600 leading-6 mt-2">
-                      <span className="font-semibold">Perfil turístico:</span> {r.actividades}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
-
-          <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-200">
-            <h2 className="text-3xl font-bold mb-6">Prestadores por actividad</h2>
-
-            <div className="space-y-4">
-              {actividades.map(([nombre, valor]) => (
-                <div key={nombre}>
-                  <div className="mb-1 flex justify-between text-sm">
-                    <span className="font-medium">{nombre}</span>
-                    <span>{valor}</span>
-                  </div>
-
-                  <div className="h-5 rounded-full bg-slate-200 overflow-hidden">
-                    <div className="h-5 rounded-full bg-emerald-600" style={{ width: `${(valor / 192) * 100}%` }} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="rounded-3xl bg-white p-6 shadow-xl border border-slate-200">
-            <h2 className="text-3xl font-bold mb-6">Conclusiones territoriales</h2>
-
-            <div className="space-y-5 text-sm leading-7 text-slate-700">
-              <div className="rounded-2xl border border-pink-200 bg-pink-50 p-4">
-                <h3 className="font-bold text-lg mb-2">Región de los Lagos del Sur</h3>
-                <p>
-                  Concentra casi la mitad de toda la infraestructura turística provincial, posicionándose como el principal destino turístico del Neuquén.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-lime-200 bg-lime-50 p-4">
-                <h3 className="font-bold text-lg mb-2">Región del Pehuén</h3>
-                <p>
-                  Se consolida como segundo polo turístico provincial asociado al turismo de naturaleza, nieve y gastronomía regional.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4">
-                <h3 className="font-bold text-lg mb-2">Confluencia</h3>
-                <p>
-                  Presenta una elevada concentración de habitaciones y plazas vinculadas al turismo urbano, corporativo y de servicios.
-                </p>
-              </div>
-
-              <div className="rounded-2xl border border-violet-200 bg-violet-50 p-4">
-                <h3 className="font-bold text-lg mb-2">Vaca Muerta</h3>
-                <p>
-                  Muestra crecimiento de oferta asociado a la dinámica hidrocarburífera y al alojamiento corporativo.
-                </p>
-              </div>
-            </div>
-          </div>
-
+      <div class="card">
+        <h2>Lectura territorial</h2>
+        <div class="notes">
+          <div class="note"><h3>Región de los Lagos del Sur</h3>Es la mayor concentración turística provincial en establecimientos, habitaciones y plazas/camas.</div>
+          <div class="note"><h3>Región del Pehuén</h3>Funciona como segundo núcleo de oferta, con fuerte perfil de naturaleza, nieve y montaña.</div>
+          <div class="note"><h3>Región Confluencia</h3>Presenta alta capacidad de alojamiento por su centralidad urbana, administrativa y corporativa.</div>
+          <div class="note"><h3>Región Vaca Muerta</h3>Se vincula principalmente a servicios, movilidad y alojamiento corporativo asociado a la actividad hidrocarburífera.</div>
         </div>
       </div>
+    </section>
+
+    <footer>Dashboard elaborado con datos del Observatorio Turístico y mapa del Plan Provincial de Regionalización.</footer>
+  </div>
+
+<script>
+const regiones = {{
+  alto: {{
+    nombre:'Región Alto Neuquén', color:'#c1357d',
+    establecimientos:101, habitaciones:608, plazas:1503, prestadores:46,
+    localidades:'Chos Malal, Andacollo, Loncopué, El Cholar, El Huecú, Huinganco, Las Ovejas, Los Miches, Taquimilán, Tricao Malal, Caviahue-Copahue, Chorriaca, Coyuco Cochico, Guañacos, Manzano Amargo, Varvarco-Invernada Vieja, Villa del Nahueve, Villa Curi Leuvú',
+    perfil:'Ecoturismo, pesca, termalismo, naturaleza y montaña.'
+  }},
+  vaca: {{
+    nombre:'Región Vaca Muerta', color:'#bf7d24',
+    establecimientos:19, habitaciones:590, plazas:1288, prestadores:17,
+    localidades:'Rincón de los Sauces, San Patricio del Chañar, Añelo, Buta Ranquil, Barrancas, Aguada San Roque, Los Chihuidos, Octavio Pico',
+    perfil:'Servicios petroleros, alojamiento corporativo, vitivinicultura y turismo de paso.'
+  }},
+  pehuen: {{
+    nombre:'Región del Pehuén', color:'#f5df4d',
+    establecimientos:267, habitaciones:1340, plazas:4774, prestadores:54,
+    localidades:'Zapala, Aluminé, Las Lajas, Mariano Moreno, Villa Pehuenia, Bajada del Agrio, Las Coloradas, Covunco Abajo, Los Catutos, Quili Malal, Ramón Castro, Villa del Puente Picún Leufú',
+    perfil:'Naturaleza, nieve, gastronomía, montaña y turismo lacustre.'
+  }},
+  comarca: {{
+    nombre:'Región de la Comarca', color:'#8b8d87',
+    establecimientos:10, habitaciones:134, plazas:295, prestadores:5,
+    localidades:'Cutral Có, Plaza Huincul, Sauzal Bonito',
+    perfil:'Turismo de servicios, paso y soporte territorial.'
+  }},
+  confluencia: {{
+    nombre:'Región Confluencia', color:'#e45e62',
+    establecimientos:104, habitaciones:2099, plazas:5127, prestadores:51,
+    localidades:'Centenario, Neuquén, Plottier, Senillosa, Vista Alegre, Villa El Chocón',
+    perfil:'Turismo urbano, corporativo, eventos, servicios y conectividad.'
+  }},
+  limay: {{
+    nombre:'Región del Limay', color:'#10aeb2',
+    establecimientos:37, habitaciones:107, plazas:376, prestadores:10,
+    localidades:'Picún Leufú, Piedra del Águila, El Sauce, Paso Aguerre, Santo Tomás',
+    perfil:'Pesca, embalses, turismo de paso y naturaleza.'
+  }},
+  lagos: {{
+    nombre:'Región de los Lagos del Sur', color:'#6da9cd',
+    establecimientos:482, habitaciones:4001, plazas:13130, prestadores:156,
+    localidades:'Junín de los Andes, San Martín de los Andes, Villa La Angostura, Villa Traful, Pilo Lil',
+    perfil:'Principal corredor turístico provincial: lagos, nieve, montaña, pesca y naturaleza.'
+  }}
+}};
+
+const actividades = [
+  ['Pesca deportiva',192], ['Montañismo',49], ['Guías de sitio',12], ['Rafting',12],
+  ['4x4',11], ['Kayak',8], ['Senderismo',8], ['Mountain bike',7], ['Cabalgatas',6],
+  ['Otras actividades',20]
+];
+
+const fmt = n => n.toLocaleString('es-AR');
+const maxEst = 482;
+let selected = 'lagos';
+
+function renderDetail(key) {{
+  selected = key;
+  const r = regiones[key];
+  document.getElementById('detail').innerHTML = `
+    <div class="region-head"><span class="dot" style="background:${{r.color}}"></span><h3>${{r.nombre}}</h3></div>
+    <div class="panel-grid">
+      <div class="panel-box"><span>Est.</span><b>${{fmt(r.establecimientos)}}</b></div>
+      <div class="panel-box"><span>Hab.</span><b>${{fmt(r.habitaciones)}}</b></div>
+      <div class="panel-box"><span>Plazas</span><b>${{fmt(r.plazas)}}</b></div>
+      <div class="panel-box"><span>Prest.</span><b>${{fmt(r.prestadores)}}</b></div>
     </div>
-  );
-}
+    <p class="small"><b>Localidades:</b> ${{r.localidades}}</p>
+    <p class="small"><b>Perfil turístico:</b> ${{r.perfil}}</p>
+  `;
+  document.querySelectorAll('[data-region]').forEach(el => el.classList.toggle('active', el.dataset.region === key));
+  document.querySelectorAll('.region-card').forEach(el => el.classList.toggle('active', el.dataset.region === key));
+}}
+
+function renderRegionList() {{
+  const list = document.getElementById('regionList');
+  list.innerHTML = Object.entries(regiones).map(([key,r]) => `
+    <div class="region-card" data-region="${{key}}">
+      <div class="region-head"><span class="dot" style="background:${{r.color}}"></span><h3>${{r.nombre}}</h3></div>
+      <div class="nums">
+        <div class="num"><span>Est.</span><b>${{fmt(r.establecimientos)}}</b></div>
+        <div class="num"><span>Hab.</span><b>${{fmt(r.habitaciones)}}</b></div>
+        <div class="num"><span>Plazas</span><b>${{fmt(r.plazas)}}</b></div>
+        <div class="num"><span>Prest.</span><b>${{fmt(r.prestadores)}}</b></div>
+      </div>
+      <div class="bar"><div class="fill" style="width:${{(r.establecimientos/maxEst)*100}}%;background:${{r.color}}"></div></div>
+    </div>
+  `).join('');
+  document.querySelectorAll('.region-card').forEach(card => card.addEventListener('click', () => renderDetail(card.dataset.region)));
+}}
+
+function renderActivities() {{
+  document.getElementById('activities').innerHTML = actividades.map(([name,value]) => `
+    <div>
+      <div class="act-top"><b>${{name}}</b><span>${{value}}</span></div>
+      <div class="actbar"><div class="actfill" style="width:${{(value/192)*100}}%"></div></div>
+    </div>
+  `).join('');
+}}
+
+const tip = document.getElementById('tip');
+document.querySelectorAll('.hotspot').forEach(h => {{
+  h.addEventListener('click', () => renderDetail(h.dataset.region));
+  h.addEventListener('mouseenter', e => {{
+    const r = regiones[h.dataset.region];
+    tip.textContent = `${{r.nombre}} · ${{r.establecimientos}} est.`;
+    tip.classList.add('show');
+  }});
+  h.addEventListener('mousemove', e => {{
+    const shell = document.getElementById('mapShell').getBoundingClientRect();
+    tip.style.left = (e.clientX - shell.left) + 'px';
+    tip.style.top = (e.clientY - shell.top) + 'px';
+  }});
+  h.addEventListener('mouseleave', () => tip.classList.remove('show'));
+}});
+
+renderRegionList();
+renderActivities();
+renderDetail(selected);
+</script>
+</body>
+</html>
+"""
+
+html_path = Path("/mnt/data/dashboard_neuquen_regionalizacion_final.html")
+html_path.write_text(html, encoding="utf-8")
+print(f"Archivo creado: {html_path}")
+print(f"Mapa renderizado: {png_path}")
