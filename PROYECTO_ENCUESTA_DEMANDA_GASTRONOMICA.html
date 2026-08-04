@@ -1581,13 +1581,36 @@ text-decoration: none !important;
 box-shadow: 0 7px 18px rgba(0,0,0,.16);
 }
 .boton-dashboard:hover { background: #87B867; }
+.acceso-encuesta {
+border: 2px solid var(--neuquen-turquesa);
+border-radius: 16px;
+padding: 24px;
+margin: 0 0 36px;
+text-align: center;
+background: #F7FAFA;
+}
+.acceso-encuesta img {
+width: 230px;
+max-width: 75%;
+height: auto;
+padding: 10px;
+background: #FFFFFF;
+border-radius: 14px;
+}
+.acceso-encuesta .titulo-qr {
+color: var(--neuquen-petroleo);
+font-size: 1.2rem;
+font-weight: 800;
+margin: 0 0 5px;
+}
+.acceso-encuesta .indicacion-qr { margin: 0 0 16px; }
 @media (max-width: 900px) {
 .toc-content { padding-left: 15px !important; }
 .institucional { flex-direction: column; align-items: flex-start; }
 }
 @media print {
 #TOC { position: static !important; }
-.acceso-dashboard { break-inside: avoid; }
+.acceso-dashboard, .acceso-encuesta { break-inside: avoid; }
 }
 </style>
 
@@ -2371,6 +2394,15 @@ al Dashboard Demanda · Experiencia Gastronómica</a></p>
 publicación. El acceso quedará operativo una vez desplegada la
 aplicación Shiny en shinyapps.io.</p>
 </blockquote>
+<div class="acceso-encuesta">
+  <p class="titulo-qr">Acceso a la encuesta gastronómica</p>
+  <p class="indicacion-qr">Escaneá el código QR con la cámara del celular para responder el formulario.</p>
+  <a href="https://docs.google.com/forms/d/e/1FAIpQLSc5R6BAJMoAOKhDNGSE_LWYDwoyv5ktKSmC-dM0w8EW7NZJEQ/viewform" target="_blank" rel="noopener">
+    <img role="img" aria-label="Código QR de acceso a la encuesta gastronómica" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAPoAAAD6AQMAAACyIsh+AAAABlBMVEX///8APlEIa6lhAAAACXBIWXMAAA7EAAAOxAGVKw4bAAADtElEQVRoge2XPa6jMBDHJ3LhJoKWwpKvQcdVkLgAES0KjtxG4QKRchU6rmHJhVue0riwMjvZ0qw2763Zjj9SRPFTsOd7AHbt2rVr165vC3E2aAzSK1PQDxfE6WfABLN0nklh7zVb8udFHbYGZj8XSKewEo3oGV7Gr+2Bib9vGwBqqUP3T4B7m+stO+LzPwBkKOcMSAZ9g3oMhz9YMhEgdxeusMKK5t5cu+vpD/HwdwCAe/AGGNT1MC5tCyulAtzPRgJjiKZuQq5xGaaNgYq8bSQTLAz34amft/xrawBnD65ghh6r2KgOKrroR6CaSo8OLbN3aRjdYbxtDSBH8JzZYO/sofV1UNnWAJ8qcnYQEBo03dLdTpGhvgGgc1IaYwYK6uvxdFHxJ1KBEsGBR6DcsSpf8uUUhX06wEtPP/QiH4Zp1WdZ5O6PAP2h814IQUTIUb/OcXYnA+WEUtIdhLUPPapB5S/YGKh8VRSSIbOmh2PbZkNkqHRgmsgR3AqJOgzqyFQbxeRHYPYVd4aC2pChjgDnw2XaGqjQcG5NCFCz57WLMnMLACmzKOzJ3UPooc1vufohQKaitooSWWD6ucBhWVXrVKAqoYAihCCY1qpTQ5yb6QB1tcI4wySGuqYKg6/4kB8Bz4sChZXQWJMvZKpla2AuaUxy1qLoxbD07Ct2ZzrgSy6lkxZhsCEPdIYoJtMBqJA6jqURJzShhRzxpwBCVQDVEIYPq59a3w6RodKBCXwhUQRpSc9r32arOSoV8BMdowgWrKnFgOp8Gn8IUI2itAk0ZFAvoGhZFZB0gLyJgDbQ9C8aSpzs8LU1MNMDThpJc3nft92SxZX2E8A5d4VnVKwfD5Xj8xYPjOlAxT33DoTAx+OhcVzgvDVAZoLCUN4Eaeo8HM+r7p8MlOVM3d0ISXUwHNv+fD7/EKhK7mg3CVJIVbf9eoZJB3CaJHoTDAZ2ZzTsxb7YAEBO1xTIpOn7jgrNZbXjfAB8ORMTqEhZaii0FaOCjYGpBEMxb5igxNEUL4d4hkkGZj6792IvjLzXnQ5ZFrn7I4C0p4EXYBmNSaHvLrd4+E8GCDFOBvPuvHSLETEqg1sAHD3NH9Sz6AzAluy0NfB7SfbkbdEEgL4/rfasT8AENDfTGoW0uetwpE+sOk4qMNNSDDxIfG/Fb3+88v8AFNIHlDAYeT3CqkZ9B3DcIKO4vtc5zbRx704HyFDOO2RC1O+W1am4gKQD5G7jCzIUdYTmCt0FX1sDu3bt2rVr11/1C5YIItr88I0TAAAAAElFTkSuQmCC" alt="Código QR de acceso a la encuesta gastronómica">
+  </a>
+</div>
+<p><a href="https://docs.google.com/forms/d/e/1FAIpQLSc5R6BAJMoAOKhDNGSE_LWYDwoyv5ktKSmC-dM0w8EW7NZJEQ/viewform">Abrir
+la encuesta gastronómica</a></p>
 </div>
 </div>
 
